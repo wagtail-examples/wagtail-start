@@ -1,4 +1,4 @@
-from re import sub
+import site
 import click
 from pathlib import Path
 import subprocess
@@ -22,25 +22,23 @@ def new(site_name, package_name):
         site-name (str): The name of the site directory to create (e.g. mysite)
     """
 
+    site_name = clean_site_name(site_name)
+
     if not package_name:
         package_name = site_name
     else:
         package_name = package_name.lower()
 
-    cwd = Path.cwd()
-    path = cwd.parent / site_name
+    cwd = Path.cwd()  # this apps root directory
+    path = cwd.parent / site_name  # the new sites root directory
     if path.exists() and path.is_dir():
         click.echo(f"Directory {path} already exists")
         return
 
-    working_dir = path / package_name
+    working_dir = path / package_name  # the new sites package directory
     working_dir.mkdir(parents=True, exist_ok=False)
 
-    remove_welcome_page = click.prompt(
-        "Do you want to remove the default welcome page? (y/n)", type=str, default="y"
-    )
-
-    generate_site(working_dir, path, package_name, remove_welcome_page)
+    generate_site(working_dir, path, package_name, cwd)
 
     python_git_ignore = click.prompt(
         "Do you want to use a python gitignore? (y/n)", type=str, default="y"
@@ -54,10 +52,33 @@ def new(site_name, package_name):
 
     webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
     if webpack == "y":
-        generate_webpack(working_dir, path, package_name)
+        generate_webpack(working_dir, path, package_name, cwd)
 
 
-def generate_site(working_dir, path, package_name, remove_welcome_page):
+def clean_site_name(site_name):
+    """Clean the site name
+    by removing spaces, dashes and dots"""
+    remove_chars = ["-", ".", " "]
+    for char in remove_chars:
+        if char in site_name:
+            site_name = site_name.replace(char, "")
+
+    return site_name.lower()
+
+
+def generate_site(working_dir, path, package_name, cwd):
+    """Generate the site
+    by creating the wagtail site and moving files around
+
+    Args:
+        working_dir (Path): The path to the package directory
+        path (Path): The path to the site directory
+        package_name (str): The name of the package
+        cwd (Path): The path to this apps root directory
+    """
+    remove_welcome_page = click.prompt(
+        "Do you want to remove the default welcome page? (y/n)", type=str, default="y"
+    )
     # create the wagtail site
     subprocess.run(["wagtail", "start", package_name, str(working_dir)], check=True)
 
@@ -94,83 +115,58 @@ def generate_site(working_dir, path, package_name, remove_welcome_page):
     subprocess.run(["mv", str(working_dir / "requirements.txt"), str(path)], check=True)
 
     # alter some files
-    with open(working_dir / "urls.py", "r") as f:
+    ## URLS
+    with open(cwd / "files" / "urls.py", "r") as f:
         content = f.read()
-        content = content.replace(
-            "from search import views as search_views",
-            f"from {package_name}.search import views as search_views",
-        )
-
+        content = content.replace("##package-name##", package_name)
     with open(working_dir / "urls.py", "w") as f:
         f.write(content)
 
-    with open(working_dir / "settings/base.py", "r") as f:
+    ## BASE
+    with open(cwd / "files" / "base.py", "r") as f:
         content = f.read()
-        content = content.replace('    "home",', f'    "{package_name}.home",')
-        content = content.replace('    "search",', f'    "{package_name}.search",')
-
+        content = content.replace("##package-name##", package_name)
     with open(working_dir / "settings/base.py", "w") as f:
         f.write(content)
 
     if remove_welcome_page:
+        # WELCOME PAGE
         subprocess.run(
             [
                 "rm",
                 str(working_dir / "home" / "templates" / "home" / "welcome_page.html"),
             ],
         )
-        with open(
-            working_dir / "home" / "templates" / "home" / "home_page.html", "r"
-        ) as f:
-            content = f.read()
-            content = content.replace(
-                """{% block extra_css %}
 
-{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-<link rel="stylesheet" href="{% static 'css/welcome_page.css' %}">
-{% endblock extra_css %}""",
-                "",
-            )
-            content = content.replace(
-                """{% comment %}
-Delete the line below if you're just getting started and want to remove the welcome screen!
-{% endcomment %}
-{% include 'home/welcome_page.html' %}""",
-                """<h1>{{ page.title }}</h1>""",
-            )
+        # HOME PAGE
+        with open(cwd / "files" / "home_page.html", "r") as f:
+            content = f.read()
+            content = content.replace("##package-name##", package_name)
         with open(
             working_dir / "home" / "templates" / "home" / "home_page.html", "w"
         ) as f:
             f.write(content)
-        subprocess.run(
-            [
-                "rm", "-rf", 
-                str(working_dir / "home" / "static"),
-            ],
-        )
-        subprocess.run(
-            [
-                "rm", "-rf",
-                str(working_dir / "static" / "css" ),
-            ]
-        )
-        subprocess.run(
-            [
-                "rm", "-rf",
-                str(working_dir / "static" / "js" ),
-            ]
-        )
 
 
-def generate_webpack(working_dir, path, package_name):
+def generate_webpack(working_dir, path, package_name, cwd):
+    """Generate webpack setup
+    by creating the webpack config and moving files around
+
+    Args:
+        working_dir (Path): The path to the package directory
+        path (Path): The path to the site directory
+        package_name (str): The name of the package
+        cwd (Path): The path to this apps root directory
+    """
+    # GITIGNORE
     subprocess.run(["touch", ".gitignore"], cwd=path, check=True)
     with open(path / ".gitignore", "r") as f:
         content = f.read()
         content += "\n# node\nnode_modules"
     with open(path / ".gitignore", "w") as f:
         f.write(content)
+    
+    # NPM
     subprocess.run(["npm", "init", "-y"], cwd=path, check=True)
     subprocess.run(["touch", ".nvmrc"], cwd=path, check=True)
     with open(path / ".nvmrc", "w") as f:
@@ -200,27 +196,33 @@ def generate_webpack(working_dir, path, package_name):
         )
     with open(path / "package.json", "w") as f:
         f.write(content)
+
+    # WEBPACK
     webpack_config = subprocess.run(
         ["curl", sources.get("webpack_config")], capture_output=True
     ).stdout.decode("utf-8")
     with open(path / "webpack.config.js", "w") as f:
         content = webpack_config.replace("webapp", package_name)
         f.write(content)
+
+    # CLIENT
     subprocess.run(["mkdir", "-p", "client/scripts"], cwd=path, check=True)
     subprocess.run(["mkdir", "-p", "client/styles"], cwd=path, check=True)
-    base_styles = """body { background-color: #fff; color: #000; }"""
-    base_scripts = """import "../styles/index.scss";\nconsole.log("hello world");"""
     with open(path / "client/styles/index.scss", "w") as f:
-        f.write(base_styles)
+        f.write("""body { background-color: #fff; color: #000; }""")
     with open(path / "client/scripts/index.js", "w") as f:
-        f.write(base_scripts)
-    with open(working_dir / "templates" / "base.html", "r") as f:
+        f.write("""import "../styles/index.scss";\nconsole.log("hello world");""")
+
+    # TEMPLATES
+    with open(cwd / "files" / "base.html", "r") as f:
         content = f.read()
-        content = content.replace(
-            "css/asite.css", "asite/bundle.css"
-        )
-        content = content.replace(
-            "js/asite.js", "asite/bundle.js"
-        )
+        content = content.replace("##package-name##", package_name)
     with open(working_dir / "templates" / "base.html", "w") as f:
         f.write(content)
+
+    # REMOVE STATIC
+    subprocess.run(
+        ["rm", "-rf", str(working_dir / "home" / "static")],
+    )
+    subprocess.run(["rm", "-rf", str(working_dir / "static" / "css")])
+    subprocess.run(["rm", "-rf", str(working_dir / "static" / "js")])
