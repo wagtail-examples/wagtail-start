@@ -1,4 +1,3 @@
-from re import sub
 import click
 import requests
 from pathlib import Path
@@ -8,6 +7,7 @@ sources = {
     "gitignore": "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
     "webpack_config": "https://raw.githubusercontent.com/wagtail-examples/tutorial-deploy-pythonanywhere-paid/main/webpack.config.js",
 }
+
 
 def get_current_wagtail_version():
     # get the current latest wagtail version from pypi
@@ -19,42 +19,70 @@ def get_current_wagtail_version():
 
 
 @click.command()
-@click.argument("site-name")
-@click.argument("wagtail-version", default=get_current_wagtail_version())
-@click.option(
-    "--package-name", "-p", help="The name of the package to create (e.g. webapp)"
+@click.argument(
+    "project-name",
+    type=str,
+    default="my_site",
+    # help="The name of the site directory to create (e.g. my_site)",
 )
-def new(site_name, package_name, wagtail_version):
-    """Create a new site
+@click.argument(
+    "package-name",
+    type=str,
+    default="webapp",
+    # help="The name of the package to create (e.g. webapp)",
+)
+@click.option(
+    "--version",
+    "-v",
+    type=str,
+    default=None,
+    help=f"The version of wagtail to use (e.g. {get_current_wagtail_version()})",
+)
+def new(project_name, package_name, version):
+    """Create a new wagtail site
 
-    Args:
+    CMD: new <project_name> <package_name>
 
-        site-name (str): The name of the site directory to create (e.g. mysite)
+    The default <project_name> is my_site, the default <package_name> is webapp
     """
 
-    cmd = "source $(poetry env info --path)/bin/activate && pip install wagtail=={} && deactivate".format(
-        wagtail_version
-    )
-
-    subprocess.run(cmd, shell=True, check=True)
-
-    site_name = clean_site_name(site_name)
+    project_name = clean_site_name(project_name)
 
     if not package_name:
-        package_name = site_name
+        package_name = project_name
     else:
         package_name = package_name.lower()
 
     cwd = Path.cwd()  # this apps root directory
-    path = cwd.parent / site_name  # the new sites root directory
+    path = cwd.parent / project_name  # the new sites root directory
     if path.exists() and path.is_dir():
         click.echo(f"Directory {path} already exists")
         return
 
+    if not version:
+        wagtail_version = click.prompt(
+            "What version of wagtail do you want to use?",
+            type=str,
+            default=get_current_wagtail_version(),
+        )
+
+        cmd = "source $(poetry env info --path)/bin/activate && pip install wagtail=={} && deactivate".format(
+            wagtail_version
+        )
+
+    click.echo(f"Creating new wagtail site version {wagtail_version}...")
+    subprocess.run(
+        cmd,
+        shell=True,
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
     working_dir = path / package_name  # the new sites package directory
     working_dir.mkdir(parents=True, exist_ok=False)
 
-    generate_site(working_dir, path, package_name, cwd)
+    generate_site(working_dir, path, package_name, project_name, cwd)
 
     python_git_ignore = click.prompt(
         "Do you want to use a python gitignore? (y/n)", type=str, default="y"
@@ -82,7 +110,7 @@ def clean_site_name(site_name):
     return site_name.lower()
 
 
-def generate_site(working_dir, path, package_name, cwd):
+def generate_site(working_dir, path, package_name, project_name, cwd):
     """Generate the site
     by creating the wagtail site and moving files around
 
@@ -96,7 +124,11 @@ def generate_site(working_dir, path, package_name, cwd):
         "Do you want to remove the default welcome page? (y/n)", type=str, default="y"
     )
     # create the wagtail site
-    subprocess.run(["wagtail", "start", package_name, str(working_dir)], check=True)
+    subprocess.run(
+        ["wagtail", "start", package_name, str(working_dir)],
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
 
     # move the settings files
     subprocess.run(
@@ -163,6 +195,13 @@ def generate_site(working_dir, path, package_name, cwd):
         ) as f:
             f.write(content)
 
+    ## Readme
+    with open(cwd / "files" / "readme", "r") as f:
+        content = f.read()
+        content = content.replace("##project_name", project_name)
+    with open(path / "README.md", "w") as f:
+        f.write(content)
+
 
 def generate_webpack(working_dir, path, package_name, cwd):
     """Generate webpack setup
@@ -181,9 +220,11 @@ def generate_webpack(working_dir, path, package_name, cwd):
         content += "\n# node\nnode_modules"
     with open(path / ".gitignore", "w") as f:
         f.write(content)
-    
+
     # NPM
-    subprocess.run(["npm", "init", "-y"], cwd=path, check=True)
+    subprocess.run(
+        ["npm", "init", "-y"], cwd=path, check=True, stdout=subprocess.DEVNULL
+    )
     subprocess.run(["touch", ".nvmrc"], cwd=path, check=True)
     with open(path / ".nvmrc", "w") as f:
         f.write("18")
@@ -203,6 +244,7 @@ def generate_webpack(working_dir, path, package_name, cwd):
         ["npm", "install", "--package-lock-only", *node_packages, "--save-dev"],
         cwd=path,
         check=True,
+        stdout=subprocess.DEVNULL,
     )
     with open(path / "package.json", "r") as f:
         content = f.read()
@@ -214,11 +256,10 @@ def generate_webpack(working_dir, path, package_name, cwd):
         f.write(content)
 
     # WEBPACK
-    webpack_config = subprocess.run(
-        ["curl", sources.get("webpack_config")], capture_output=True
-    ).stdout.decode("utf-8")
+    with open(cwd / "files" / "webpack.js", "r") as f:
+        content = f.read()
+        content = content.replace("webapp", package_name)
     with open(path / "webpack.config.js", "w") as f:
-        content = webpack_config.replace("webapp", package_name)
         f.write(content)
 
     # CLIENT
