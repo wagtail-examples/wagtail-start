@@ -1,5 +1,6 @@
-import site
+from re import sub
 import click
+import requests
 from pathlib import Path
 import subprocess
 
@@ -8,19 +9,34 @@ sources = {
     "webpack_config": "https://raw.githubusercontent.com/wagtail-examples/tutorial-deploy-pythonanywhere-paid/main/webpack.config.js",
 }
 
+def get_current_wagtail_version():
+    # get the current latest wagtail version from pypi
+    # using requests
+    url = "https://pypi.org/pypi/wagtail/json"
+    response = requests.get(url)
+    data = response.json()
+    return str(data["info"]["version"])
+
 
 @click.command()
 @click.argument("site-name")
+@click.argument("wagtail-version", default=get_current_wagtail_version())
 @click.option(
     "--package-name", "-p", help="The name of the package to create (e.g. webapp)"
 )
-def new(site_name, package_name):
+def new(site_name, package_name, wagtail_version):
     """Create a new site
 
     Args:
 
         site-name (str): The name of the site directory to create (e.g. mysite)
     """
+
+    cmd = "source $(poetry env info --path)/bin/activate && pip install wagtail=={} && deactivate".format(
+        wagtail_version
+    )
+
+    subprocess.run(cmd, shell=True, check=True)
 
     site_name = clean_site_name(site_name)
 
