@@ -3,34 +3,20 @@ import requests
 from pathlib import Path
 import subprocess
 
+from .generators.readme import generate_readme
+from .generators.welcome_page import remove_welcome_page, replace_home_page
+from .generators.settings import update_urls, update_base_settings
+from .functions import clean_site_name, get_current_wagtail_version, install_wagtail_in_virtualenv
+
 sources = {
     "gitignore": "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
     "webpack_config": "https://raw.githubusercontent.com/wagtail-examples/tutorial-deploy-pythonanywhere-paid/main/webpack.config.js",
 }
 
 
-def get_current_wagtail_version():
-    # get the current latest wagtail version from pypi
-    # using requests
-    url = "https://pypi.org/pypi/wagtail/json"
-    response = requests.get(url)
-    data = response.json()
-    return str(data["info"]["version"])
-
-
 @click.command()
-@click.argument(
-    "project-name",
-    type=str,
-    default="my_site",
-    # help="The name of the site directory to create (e.g. my_site)",
-)
-@click.argument(
-    "package-name",
-    type=str,
-    default="webapp",
-    # help="The name of the package to create (e.g. webapp)",
-)
+@click.argument("project-name", type=str, default="my_site")
+@click.argument("package-name", type=str, default="webapp")
 @click.option(
     "--version",
     "-v",
@@ -46,18 +32,15 @@ def new(project_name, package_name, version):
     The default <project_name> is my_site, the default <package_name> is webapp
     """
 
-    project_name = clean_site_name(project_name)
-
-    if not package_name:
-        package_name = project_name
-    else:
-        package_name = package_name.lower()
+    project_name = clean_site_name(project_name)  # needs more work
+    package_name = project_name if not package_name else package_name.lower()
 
     cwd = Path.cwd()  # this apps root directory
     path = cwd.parent / project_name  # the new sites root directory
+    
     if path.exists() and path.is_dir():
         click.echo(f"Directory {path} already exists")
-        return
+        return # exit with a message
 
     if not version:
         wagtail_version = click.prompt(
@@ -71,13 +54,7 @@ def new(project_name, package_name, version):
         )
 
     click.echo(f"Creating new wagtail site version {wagtail_version}...")
-    subprocess.run(
-        cmd,
-        shell=True,
-        check=True,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    install_wagtail_in_virtualenv(cmd)
 
     working_dir = path / package_name  # the new sites package directory
     working_dir.mkdir(parents=True, exist_ok=False)
@@ -99,17 +76,6 @@ def new(project_name, package_name, version):
         generate_webpack(working_dir, path, package_name, cwd)
 
 
-def clean_site_name(site_name):
-    """Clean the site name
-    by removing spaces, dashes and dots"""
-    remove_chars = ["-", ".", " "]
-    for char in remove_chars:
-        if char in site_name:
-            site_name = site_name.replace(char, "")
-
-    return site_name.lower()
-
-
 def generate_site(working_dir, path, package_name, project_name, cwd):
     """Generate the site
     by creating the wagtail site and moving files around
@@ -120,9 +86,7 @@ def generate_site(working_dir, path, package_name, project_name, cwd):
         package_name (str): The name of the package
         cwd (Path): The path to this apps root directory
     """
-    remove_welcome_page = click.prompt(
-        "Do you want to remove the default welcome page? (y/n)", type=str, default="y"
-    )
+
     # create the wagtail site
     subprocess.run(
         ["wagtail", "start", package_name, str(working_dir)],
@@ -162,45 +126,16 @@ def generate_site(working_dir, path, package_name, project_name, cwd):
     subprocess.run(["mv", str(working_dir / "Dockerfile"), str(path)], check=True)
     subprocess.run(["mv", str(working_dir / "requirements.txt"), str(path)], check=True)
 
-    # alter some files
-    ## URLS
-    with open(cwd / "files" / "urls.py", "r") as f:
-        content = f.read()
-        content = content.replace("##package-name##", package_name)
-    with open(working_dir / "urls.py", "w") as f:
-        f.write(content)
+    update_urls(package_name, working_dir)
+    update_base_settings(package_name, working_dir)
 
-    ## BASE
-    with open(cwd / "files" / "base.py", "r") as f:
-        content = f.read()
-        content = content.replace("##package-name##", package_name)
-    with open(working_dir / "settings/base.py", "w") as f:
-        f.write(content)
+    if click.prompt(
+        "Do you want to remove the default welcome page? (y/n)", type=str, default="y"
+    ):
+        remove_welcome_page(working_dir)
+        replace_home_page(working_dir, package_name, cwd)
 
-    if remove_welcome_page:
-        # WELCOME PAGE
-        subprocess.run(
-            [
-                "rm",
-                str(working_dir / "home" / "templates" / "home" / "welcome_page.html"),
-            ],
-        )
-
-        # HOME PAGE
-        with open(cwd / "files" / "home_page.html", "r") as f:
-            content = f.read()
-            content = content.replace("##package-name##", package_name)
-        with open(
-            working_dir / "home" / "templates" / "home" / "home_page.html", "w"
-        ) as f:
-            f.write(content)
-
-    ## Readme
-    with open(cwd / "files" / "readme", "r") as f:
-        content = f.read()
-        content = content.replace("##project_name", project_name)
-    with open(path / "README.md", "w") as f:
-        f.write(content)
+    generate_readme(path, project_name)
 
 
 def generate_webpack(working_dir, path, package_name, cwd):
