@@ -13,8 +13,12 @@ def update_urls(package_name, working_dir):
 def update_base_settings(package_name, working_dir):
     with open(working_dir / "settings" / "base.py", "r") as f:
         content = f.read()
+        # Double quotes used by 3.0+
         content = content.replace('"home",', f'"{package_name}.home",')
         content = content.replace('"search",', f'"{package_name}.search",')
+        # Single quotes used up to 2.16
+        content = content.replace("'home',", f"'{package_name}.home',")
+        content = content.replace("'search',", f"'{package_name}.search',")
 
     with open(working_dir / "settings" / "base.py", "w") as f:
         f.write(content)
