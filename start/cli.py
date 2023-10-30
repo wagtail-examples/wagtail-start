@@ -1,5 +1,4 @@
 import click
-from pathlib import Path
 import subprocess
 
 from .functions import clean_site_name
@@ -9,6 +8,9 @@ from .functions import install_wagtail_in_virtualenv
 
 from .generators.backend import generate_backend
 from .generators.frontend import generate_frontend
+from .generators.installer import WagtailVersionInstaller
+
+from .processors.cls import PathManager, PyPiClient
 
 sources = {
     "gitignore": "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
@@ -19,14 +21,14 @@ sources = {
 @click.command()
 @click.argument("project-name", type=str, default="my_site")
 @click.argument("package-name", type=str, default="webapp")
-@click.option(
-    "--version",
-    "-v",
-    type=str,
-    default=None,
-    help=f"The version of wagtail to use (e.g. {get_current_wagtail_version()})",
-)
-def new(project_name, package_name, version):
+# @click.option(
+#     "--version",
+#     "-v",
+#     type=str,
+#     default=None,
+#     help=f"The version of wagtail to use (e.g. 2.9 will install the latest version of wagtail 2.9.x)",
+# )
+def new(project_name, package_name):
     """Create a new wagtail site
 
     CMD: new <project_name> <package_name>
@@ -34,34 +36,63 @@ def new(project_name, package_name, version):
     The default <project_name> is my_site, the default <package_name> is webapp
     """
 
-    project_name = clean_site_name(project_name)  # needs more work
-    package_name = project_name if not package_name else package_name.lower()
+    pypi_client = PyPiClient()
+    base_versions = pypi_client.base_versions
 
-    cwd = Path.cwd()  # this apps root directory
-    path = cwd.parent / project_name  # the new sites root directory
+    version_installer = WagtailVersionInstaller()
+    wagtail_version = version_installer.wagtail_version
 
-    if path.exists() and path.is_dir():
-        click.echo(f"Directory {path} already exists")
-        return  # exit with a message
+    click.echo(
+        click.style(f"Using wagtail v{wagtail_version}", fg="white", bg="blue"),
+    )
+    click.echo("Press enter to install the latest version of wagtail")
 
-    if not version:
-        wagtail_version = click.prompt(
-            "What version of wagtail do you want to use?",
-            type=str,
-            default=get_current_wagtail_version(),
+    version = click.prompt(
+        "or enter a version to install? (e.g. 2.9 will install the latest version of wagtail 2.9.x)",
+        type=str,
+        default=wagtail_version,
+    )
+    
+    if version_installer.complete_minimal_wagtail_version(version) not in base_versions:
+        click.echo(
+            click.style(
+                f"Error: Could not find wagtail v{version}",
+                fg="white",
+                bg="red",
+            )
         )
+        exit()
 
-        cmd = "source $(poetry env info --path)/bin/activate && pip install wagtail=={} && deactivate".format(
-            wagtail_version
-        )
+    version_installer.change_version(version_installer.complete_minimal_wagtail_version(version))
+    click.echo(
+        click.style(f"Using wagtail v{version_installer.wagtail_version}.x", fg="white", bg="blue"),
+    )
+
+    click.echo("Installing wagtail, please wait...")
+    version_installer.install_wagtail()
+
+    exit()
+
+    path_manager = PathManager(project_name=project_name, package_name=package_name)
+
+    if path_manager.path_exists(path_manager.project_path):
+        click.echo(f"Directory {path_manager.project_path} already exists")
+        return
 
     click.echo(f"Creating new wagtail site version {wagtail_version}...")
-    install_wagtail_in_virtualenv(cmd)
+    version_installer.install_wagtail()
 
-    working_dir = path / package_name  # the new sites package directory
-    working_dir.mkdir(parents=True, exist_ok=False)
+    # cmd = "source $(poetry env info --path)/bin/activate && pip install wagtail=={} && deactivate".format(
+    #     wagtail_version
+    # )
 
-    generate_backend(working_dir, path, package_name, project_name, cwd)
+    # install_wagtail_in_virtualenv(cmd)
+    exit()
+
+    pm.project_path.mkdir(parents=True, exist_ok=False)
+    # working_dir = path / package_name  # the new sites package directory
+
+    generate_backend(pm.project_path, package_name, project_name, cwd)
 
     ignore_append = False
     python_git_ignore = click.prompt(
@@ -79,4 +110,3 @@ def new(project_name, package_name, version):
     webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
     if webpack == "y":
         generate_frontend(working_dir, path, package_name, cwd, ignore_append)
-
