@@ -1,4 +1,6 @@
+from pdb import pm
 import pytest
+import tempfile
 
 from pathlib import Path
 from start.processors.cls import PathManager
@@ -58,3 +60,12 @@ def test_path_manager_post_init():
 def test_path_manager_get_cwd(current_dir):
     pm = PathManager("", "")
     assert pm.get_cwd() == current_dir
+
+
+def test_path_manager_path_exists(tmp_path):
+    p_name = tmp_path / "My_Project"
+    p_name.mkdir()
+    pm = PathManager("My Project", "My Package")
+    assert pm.path_exists(p_name) is True
+    p_name.rmdir()
+    assert pm.path_exists(p_name) is False
