@@ -1,8 +1,4 @@
-from pathlib import Path
-from pydoc import cli
 import subprocess
-
-import click
 
 webpack_content = """const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");

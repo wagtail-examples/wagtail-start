@@ -8,7 +8,7 @@ from start.processors.welcome_page import remove_welcome_page
 from start.processors.welcome_page import replace_home_page
 from start.processors.readme import generate_readme
 
-def generate_backend(working_dir, path, package_name, project_name, cwd):
+def generate_backend(project_dir, path, package_name, project_name, cwd):
     """Generate the site
     by creating the wagtail site and moving files around
 
@@ -21,19 +21,19 @@ def generate_backend(working_dir, path, package_name, project_name, cwd):
 
     # create the wagtail site
     subprocess.run(
-        ["wagtail", "start", package_name, str(working_dir)],
+        ["wagtail", "start", package_name, str(project_dir)],
         check=True,
         stdout=subprocess.DEVNULL,
     )
 
-    move_files_settings(working_dir, package_name, path)
-    update_urls(package_name, working_dir)
-    update_base_settings(package_name, working_dir)
+    move_files_settings(project_dir, package_name, path)
+    update_urls(package_name, project_dir)
+    update_base_settings(package_name, project_dir)
 
     if click.prompt(
         "Do you want to remove the default welcome page? (y/n)", type=str, default="y"
     ):
-        remove_welcome_page(working_dir)
-        replace_home_page(working_dir, package_name, cwd)
+        remove_welcome_page(project_dir)
+        replace_home_page(project_dir, package_name, cwd)
 
     generate_readme(path, project_name)
