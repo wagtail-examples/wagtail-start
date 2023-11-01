@@ -1,4 +1,7 @@
-import requests, subprocess
+import subprocess
+
+import requests
+
 
 def clean_site_name(site_name):
     """Clean the site name
@@ -9,6 +12,7 @@ def clean_site_name(site_name):
             site_name = site_name.replace(char, "")
 
     return site_name.lower()
+
 
 def get_current_wagtail_version():
     # get the current latest wagtail version from pypi

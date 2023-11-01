@@ -1,10 +1,9 @@
 import re
-import requests
-
 from dataclasses import dataclass
 from pathlib import Path
-from sys import version
 from typing import Optional
+
+import requests
 
 
 @dataclass
@@ -45,7 +44,7 @@ class PathManager:
 
     def path_exists(self, path):
         return path.exists() and path.is_dir()
-    
+
     def create_project_path(self):
         # self.project_path.mkdir(parents=True, exist_ok=False)
         self.package_path.mkdir(parents=True, exist_ok=False)
@@ -55,7 +54,7 @@ class PathManager:
 class PyPiClient:
     """
     A client for the PyPi API
-    
+
     Gets all the available versions of wagtail.
 
     Attributes:
@@ -76,9 +75,9 @@ class PyPiClient:
         )
 
     def _reduce_versions(self, versions: list) -> list:
-        reduced_versions = list()
+        reduced_versions = []
         for version in versions:
-            if not "rc" in version and not "b" in version and not "a" in version:
+            if "rc" not in version and "b" not in version and "a" not in version:
                 # remove pre-release versions
                 reduced_versions.append(version)
 

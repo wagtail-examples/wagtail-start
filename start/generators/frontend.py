@@ -100,7 +100,12 @@ def generate_frontend(path_manager, ignore_append):
             f.write(append_line)
 
     # NPM
-    subprocess.run(["npm", "init", "-y"], cwd=path_manager.project_path, check=True, stdout=subprocess.DEVNULL)
+    subprocess.run(
+        ["npm", "init", "-y"],
+        cwd=path_manager.project_path,
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
 
     with open(path_manager.project_path / ".nvmrc", "w") as f:
         f.write("18")

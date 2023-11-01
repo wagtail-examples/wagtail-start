@@ -1,7 +1,8 @@
-from tabnanny import check
+import subprocess
+
 import click
 import requests
-import subprocess
+
 
 class WagtailVersionInstaller:
     """Install the passed in version of wagtail
@@ -28,24 +29,29 @@ class WagtailVersionInstaller:
             data = response.json()
             self.wagtail_version = str(data["info"]["version"])
         else:
-            self.wagtail_version = self.complete_minimal_wagtail_version(wagtail_version)
+            self.wagtail_version = self.complete_minimal_wagtail_version(
+                wagtail_version
+            )
 
     def complete_minimal_wagtail_version(self, version):
         parts = version.split(".")
 
         if len(parts) == 3:
             return version
-        
+
         if len(parts) == 2:
             return f"{version}.0"
-        
+
         if len(parts) == 1:
             return f"{version}.0.0"
 
         raise ValueError(
-            "The version of wagtail is not valid. Please use a major and minor version e.g. 2.9 or 2.9.1 if you need a patch version."
+            (
+                "The version of wagtail is not valid.",
+                "Please use a major and minor version e.g. 2.9 or 2.9.1 if you need a patch version.",
+            )
         )
-    
+
     def change_version(self, version):
         self.wagtail_version = self.complete_minimal_wagtail_version(version)
 
@@ -63,7 +69,6 @@ class WagtailVersionInstaller:
             )
             exit()
         else:
-            data = response.json()
             click.echo(
                 click.style(
                     "Installing wagtail",
@@ -71,8 +76,9 @@ class WagtailVersionInstaller:
                     bg="green",
                 )
             )
-        cmd = f"source $(poetry env info --path)/bin/activate && pip install wagtail=={self.wagtail_version} && deactivate"
-    
+        cmd = f"""source $(poetry env info --path)/bin/activate &&
+        pip install wagtail=={self.wagtail_version} && deactivate"""
+
         try:
             subprocess.run(
                 cmd,
@@ -84,7 +90,7 @@ class WagtailVersionInstaller:
         except subprocess.CalledProcessError as e:
             click.echo(
                 click.style(
-                    f"Error: Could not install wagtail v{self.wagtail_version}",
+                    f"Error: Could not install wagtail v{self.wagtail_version} {e}",
                     fg="white",
                     bg="red",
                 )

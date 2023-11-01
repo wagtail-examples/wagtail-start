@@ -1,20 +1,14 @@
-import click
 import subprocess
 
-from .functions import clean_site_name
-from .functions import clean_site_name
-from .functions import get_current_wagtail_version
-from .functions import install_wagtail_in_virtualenv
+import click
 
 from .generators.backend import generate_backend
 from .generators.frontend import generate_frontend
 from .generators.installer import WagtailVersionInstaller
-
 from .processors.cls import PathManager, PyPiClient
 
 sources = {
     "gitignore": "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
-    "webpack_config": "https://raw.githubusercontent.com/wagtail-examples/tutorial-deploy-pythonanywhere-paid/main/webpack.config.js",
 }
 
 
@@ -68,12 +62,12 @@ def new(project_name: str, package_name: str) -> None:
     if path_manager.path_exists(path_manager.project_path):
         click.echo(f"Directory {path_manager.project_path} already exists")
         return
-    
+
     path_manager.create_project_path()
 
     click.echo("Creating new wagtail site")
     click.echo("==========================")
-    
+
     generate_backend(path_manager)
 
     ignore_append = False

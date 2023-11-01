@@ -1,12 +1,11 @@
-import click
 import subprocess
 
+import click
+
 from start.processors.movers import move_files_settings
-from start.processors.settings import update_base_settings
-from start.processors.settings import update_urls
-from start.processors.welcome_page import remove_welcome_page
-from start.processors.welcome_page import replace_home_page
 from start.processors.readme import generate_readme
+from start.processors.settings import update_base_settings, update_urls
+from start.processors.welcome_page import remove_welcome_page, replace_home_page
 
 
 def generate_backend(path_manager):
