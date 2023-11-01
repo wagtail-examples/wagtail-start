@@ -2,7 +2,7 @@ import subprocess
 
 
 def move_files_settings(path_manager):
-    subprocess.run(  # folder
+    subprocess.run(  # SETTINGS
         [
             "mv",
             str(path_manager.package_path / path_manager.package_name / "settings"),
@@ -10,7 +10,8 @@ def move_files_settings(path_manager):
         ],
         check=True,
     )
-    subprocess.run(  # file
+
+    subprocess.run(  # URLS
         [
             "mv",
             str(path_manager.package_path / path_manager.package_name / "urls.py"),
@@ -18,7 +19,8 @@ def move_files_settings(path_manager):
         ],
         check=True,
     )
-    subprocess.run(  # file
+
+    subprocess.run(  # WSGI
         [
             "mv",
             str(path_manager.package_path / path_manager.package_name / "wsgi.py"),
@@ -26,7 +28,8 @@ def move_files_settings(path_manager):
         ],
         check=True,
     )
-    subprocess.run(  # folder
+
+    subprocess.run(  # STATIC
         [
             "mv",
             str(path_manager.package_path / path_manager.package_name / "static"),
@@ -34,7 +37,8 @@ def move_files_settings(path_manager):
         ],
         check=True,
     )
-    subprocess.run(  # folder
+
+    subprocess.run(  # TEMPLATES
         [
             "mv",
             str(path_manager.package_path / path_manager.package_name / "templates"),
@@ -42,7 +46,8 @@ def move_files_settings(path_manager):
         ],
         check=True,
     )
-    subprocess.run(  # file
+
+    subprocess.run(  # INIT
         [
             "mv",
             str(path_manager.package_path / path_manager.package_name / "__init__.py"),
@@ -54,12 +59,13 @@ def move_files_settings(path_manager):
     subprocess.run(
         ["rm", "-rf", str(path_manager.package_path / path_manager.package_name)],
         check=True,
-    )  # cleans up the empty folder
+    )  # FOLDER
 
     subprocess.run(
         ["mv", str(path_manager.package_path / "manage.py"), path_manager.project_path],
         check=True,
-    )
+    )  # MANAGE
+
     subprocess.run(
         [
             "mv",
@@ -67,7 +73,8 @@ def move_files_settings(path_manager):
             path_manager.project_path,
         ],
         check=True,
-    )
+    )  # DOCKERIGNORE
+
     subprocess.run(
         [
             "mv",
@@ -75,7 +82,8 @@ def move_files_settings(path_manager):
             path_manager.project_path,
         ],
         check=True,
-    )
+    )  # DOCKERFILE
+
     subprocess.run(
         [
             "mv",
@@ -83,4 +91,4 @@ def move_files_settings(path_manager):
             path_manager.project_path,
         ],
         check=True,
-    )
+    )  # REQUIREMENTS
