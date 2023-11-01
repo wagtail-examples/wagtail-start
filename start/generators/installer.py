@@ -66,9 +66,9 @@ class WagtailVersionInstaller:
             data = response.json()
             click.echo(
                 click.style(
-                    f"Installing wagtail v{self.wagtail_version}...",
-                    fg="white",
-                    bg="blue",
+                    "Installing wagtail",
+                    fg="black",
+                    bg="green",
                 )
             )
         cmd = f"source $(poetry env info --path)/bin/activate && pip install wagtail=={self.wagtail_version} && deactivate"

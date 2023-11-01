@@ -21,14 +21,7 @@ sources = {
 @click.command()
 @click.argument("project-name", type=str, default="my_site")
 @click.argument("package-name", type=str, default="webapp")
-# @click.option(
-#     "--version",
-#     "-v",
-#     type=str,
-#     default=None,
-#     help=f"The version of wagtail to use (e.g. 2.9 will install the latest version of wagtail 2.9.x)",
-# )
-def new(project_name, package_name):
+def new(project_name: str, package_name: str) -> None:
     """Create a new wagtail site
 
     CMD: new <project_name> <package_name>
@@ -43,56 +36,45 @@ def new(project_name, package_name):
     wagtail_version = version_installer.wagtail_version
 
     click.echo(
-        click.style(f"Using wagtail v{wagtail_version}", fg="white", bg="blue"),
+        click.style(
+            f"Using wagtail v{wagtail_version}",
+            fg="yellow",
+        ),
     )
-    click.echo("Press enter to install the latest version of wagtail")
 
     version = click.prompt(
-        "or enter a version to install? (e.g. 2.9 will install the latest version of wagtail 2.9.x)",
+        "Type a specific version of wagtail (e.g. 3.0.1) or press enter to continue",
         type=str,
         default=wagtail_version,
     )
-    
+
     if version_installer.complete_minimal_wagtail_version(version) not in base_versions:
         click.echo(
             click.style(
                 f"Error: Could not find wagtail v{version}",
-                fg="white",
-                bg="red",
+                fg="red",
             )
         )
         exit()
 
-    version_installer.change_version(version_installer.complete_minimal_wagtail_version(version))
-    click.echo(
-        click.style(f"Using wagtail v{version_installer.wagtail_version}.x", fg="white", bg="blue"),
+    version_installer.change_version(
+        version_installer.complete_minimal_wagtail_version(version)
     )
 
-    click.echo("Installing wagtail, please wait...")
     version_installer.install_wagtail()
-
-    exit()
 
     path_manager = PathManager(project_name=project_name, package_name=package_name)
 
     if path_manager.path_exists(path_manager.project_path):
         click.echo(f"Directory {path_manager.project_path} already exists")
         return
+    
+    path_manager.create_project_path()
 
-    click.echo(f"Creating new wagtail site version {wagtail_version}...")
-    version_installer.install_wagtail()
-
-    # cmd = "source $(poetry env info --path)/bin/activate && pip install wagtail=={} && deactivate".format(
-    #     wagtail_version
-    # )
-
-    # install_wagtail_in_virtualenv(cmd)
-    exit()
-
-    pm.project_path.mkdir(parents=True, exist_ok=False)
-    # working_dir = path / package_name  # the new sites package directory
-
-    generate_backend(pm.project_path, package_name, project_name, cwd)
+    click.echo("Creating new wagtail site")
+    click.echo("==========================")
+    
+    generate_backend(path_manager)
 
     ignore_append = False
     python_git_ignore = click.prompt(
@@ -104,9 +86,46 @@ def new(project_name, package_name):
         python_git_ignore_content = subprocess.run(
             ["curl", sources.get("gitignore")], capture_output=True
         ).stdout.decode("utf-8")
-        with open(path / ".gitignore", "a") as f:
+        with open(path_manager.project_path / ".gitignore", "a") as f:
             f.write(python_git_ignore_content)
 
     webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
+
     if webpack == "y":
-        generate_frontend(working_dir, path, package_name, cwd, ignore_append)
+        generate_frontend(path_manager, ignore_append)
+
+
+@click.command()
+@click.argument("major", type=int, default=0)
+def versions(major) -> None:
+    """List available wagtail versions
+
+    CMD: versions <major>
+
+    The default <major> is 0, which will list all available versions
+    """
+
+    pypi_client = PyPiClient()
+    base_versions = pypi_client.base_versions
+
+    grouped_data = {}
+    for item in base_versions:
+        first_digit = item.split(".")[0]
+        if major != 0 and int(first_digit) != major:
+            continue
+        if first_digit in grouped_data:
+            grouped_data[first_digit].append(item)
+        else:
+            grouped_data[first_digit] = [item]
+
+    result = list(grouped_data.values())
+
+    # Sort the groups by the first digit
+    result.sort(key=lambda x: int(x[0].split(".")[0]))
+    result.reverse()
+
+    click.echo("Available wagtail release versions:")
+    click.echo("===================================")
+
+    for group in result:
+        click.echo(f"{group[0].split('.')[0]}.x: [{', '.join(group)}]")

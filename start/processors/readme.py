@@ -1,5 +1,5 @@
-def generate_readme(path, project_name: str) -> str:
-    content = f"""# { project_name }
+def generate_readme(path_manager) -> str:
+    content = f"""# { path_manager.package_name }
 
 This project was generated using [Wagtail Start CLI](https://github.com/wagtail-examples/wagtail-start)
 
@@ -29,5 +29,5 @@ npm start
 ```
 """
 
-    with open(path / "README.md", "w") as f:
+    with open(path_manager.project_path / "README.md", "w") as f:
         f.write(content)

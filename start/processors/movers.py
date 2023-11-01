@@ -1,36 +1,86 @@
 import subprocess
 
 
-def move_files_settings(working_dir, package_name, path):
+def move_files_settings(path_manager):
     subprocess.run(  # folder
-        ["mv", str(working_dir / package_name / "settings"), str(working_dir)],
+        [
+            "mv",
+            str(path_manager.package_path / path_manager.package_name / "settings"),
+            str(path_manager.package_path),
+        ],
         check=True,
     )
     subprocess.run(  # file
-        ["mv", str(working_dir / package_name / "urls.py"), str(working_dir)],
+        [
+            "mv",
+            str(path_manager.package_path / path_manager.package_name / "urls.py"),
+            str(path_manager.package_path),
+        ],
         check=True,
     )
     subprocess.run(  # file
-        ["mv", str(working_dir / package_name / "wsgi.py"), str(working_dir)],
+        [
+            "mv",
+            str(path_manager.package_path / path_manager.package_name / "wsgi.py"),
+            str(path_manager.package_path),
+        ],
         check=True,
     )
     subprocess.run(  # folder
-        ["mv", str(working_dir / package_name / "static"), str(working_dir)], check=True
+        [
+            "mv",
+            str(path_manager.package_path / path_manager.package_name / "static"),
+            str(path_manager.package_path),
+        ],
+        check=True,
     )
     subprocess.run(  # folder
-        ["mv", str(working_dir / package_name / "templates"), str(working_dir)],
+        [
+            "mv",
+            str(path_manager.package_path / path_manager.package_name / "templates"),
+            str(path_manager.package_path),
+        ],
         check=True,
     )
     subprocess.run(  # file
-        ["mv", str(working_dir / package_name / "__init__.py"), str(working_dir)],
+        [
+            "mv",
+            str(path_manager.package_path / path_manager.package_name / "__init__.py"),
+            str(path_manager.package_path),
+        ],
         check=True,
     )
 
     subprocess.run(
-        ["rm", "-rf", str(working_dir / package_name)], check=True
+        ["rm", "-rf", str(path_manager.package_path / path_manager.package_name)],
+        check=True,
     )  # cleans up the empty folder
 
-    subprocess.run(["mv", str(working_dir / "manage.py"), str(path)], check=True)
-    subprocess.run(["mv", str(working_dir / ".dockerignore"), str(path)], check=True)
-    subprocess.run(["mv", str(working_dir / "Dockerfile"), str(path)], check=True)
-    subprocess.run(["mv", str(working_dir / "requirements.txt"), str(path)], check=True)
+    subprocess.run(
+        ["mv", str(path_manager.package_path / "manage.py"), path_manager.project_path],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "mv",
+            str(path_manager.package_path / ".dockerignore"),
+            path_manager.project_path,
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "mv",
+            str(path_manager.package_path / "Dockerfile"),
+            path_manager.project_path,
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "mv",
+            str(path_manager.package_path / "requirements.txt"),
+            path_manager.project_path,
+        ],
+        check=True,
+    )

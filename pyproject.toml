@@ -26,3 +26,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 new = "start.cli:new"
+inspect = "start.cli:versions"
