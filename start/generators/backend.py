@@ -30,6 +30,7 @@ def generate_backend(path_manager):
         check=True,
         stdout=subprocess.DEVNULL,
     )
+
     move_files_settings(path_manager)
     update_urls(path_manager)
     update_base_settings(path_manager)

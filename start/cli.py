@@ -13,14 +13,14 @@ sources = {
 
 
 @click.command()
-@click.argument("project-name", type=str, default="my_site")
-@click.argument("package-name", type=str, default="webapp")
+@click.argument("project-name", type=str, default="wagtail_site")
+@click.argument("package-name", type=str, default="app")
 def new(project_name: str, package_name: str) -> None:
     """Create a new wagtail site
 
     CMD: new <project_name> <package_name>
 
-    The default <project_name> is my_site, the default <package_name> is webapp
+    The default <project_name> is wagtail_site, the default <package_name> is app
     """
 
     pypi_client = PyPiClient()
