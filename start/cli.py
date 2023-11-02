@@ -87,7 +87,11 @@ def new(project_name: str, package_name: str) -> None:
     if python_git_ignore == "y":
         ignore_append = True
         python_git_ignore_content = subprocess.run(
-            ["curl", sources.get("gitignore")], capture_output=True
+            [
+                "curl",
+                "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
+            ],
+            capture_output=True,
         ).stdout.decode("utf-8")
         with open(pm.project_path / ".gitignore", "a") as f:
             f.write(python_git_ignore_content)
