@@ -23,12 +23,12 @@ def new(project_name: str, package_name: str) -> None:
     The default <project_name> is wagtail_site, the default <package_name> is app
     """
 
-    wagtail_installer = WagtailVersionInstaller()
-    wagtail_version = wagtail_installer.wagtail_version
+    installer = WagtailVersionInstaller()
+    installer_version = installer.wagtail_version
 
     click.echo(
         click.style(
-            f"Using wagtail v{wagtail_version}",
+            f"Using wagtail v{installer_version}",
             fg="yellow",
         ),
     )
@@ -36,19 +36,24 @@ def new(project_name: str, package_name: str) -> None:
     version = click.prompt(
         "Type a specific version of wagtail (e.g. 3.0.1) or press enter to continue",
         type=str,
-        default=wagtail_version,
+        default=installer_version,
     )
 
-    wagtail_installer.change_version(version)
+    installer.change_version(version)
 
-    result = wagtail_installer.install_wagtail()
+    result = installer.install_wagtail()
 
     if not result:
         click.echo(
             click.style(
                 f"Error: Could not find wagtail v{version}",
+                fg="red",
+            )
+        )
+        click.echo(
+            click.style(
+                "You can run `poetry run inspect` to see all available versions",
                 fg="white",
-                bg="red",
             )
         )
         return
@@ -61,18 +66,18 @@ def new(project_name: str, package_name: str) -> None:
             )
         )
 
-    path_manager = PathManager(project_name=project_name, package_name=package_name)
+    pm = PathManager(project_name=project_name, package_name=package_name)
 
-    if path_manager.path_exists(path_manager.project_path):
-        click.echo(f"Directory {path_manager.project_path} already exists")
+    if pm.path_exists(pm.project_path):
+        click.echo(f"Directory {pm.project_path} already exists")
         return
 
-    path_manager.create_project_path()
+    pm.create_project_path()
 
     click.echo("Creating new wagtail site")
     click.echo("==========================")
 
-    generate_backend(path_manager)
+    generate_backend(pm)
 
     ignore_append = False
     python_git_ignore = click.prompt(
@@ -84,13 +89,13 @@ def new(project_name: str, package_name: str) -> None:
         python_git_ignore_content = subprocess.run(
             ["curl", sources.get("gitignore")], capture_output=True
         ).stdout.decode("utf-8")
-        with open(path_manager.project_path / ".gitignore", "a") as f:
+        with open(pm.project_path / ".gitignore", "a") as f:
             f.write(python_git_ignore_content)
 
     webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
 
     if webpack == "y":
-        generate_frontend(path_manager, ignore_append)
+        generate_frontend(pm, ignore_append)
 
 
 @click.command()
