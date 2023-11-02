@@ -81,8 +81,6 @@ class PyPiClient:
                 # remove pre-release versions
                 reduced_versions.append(version)
 
-        reduced_versions = self._append_2_digit_versions(reduced_versions)
-
         return reduced_versions
 
     def _append_2_digit_versions(self, versions: list) -> list:

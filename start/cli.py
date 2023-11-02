@@ -23,11 +23,8 @@ def new(project_name: str, package_name: str) -> None:
     The default <project_name> is wagtail_site, the default <package_name> is app
     """
 
-    pypi_client = PyPiClient()
-    base_versions = pypi_client.base_versions
-
-    version_installer = WagtailVersionInstaller()
-    wagtail_version = version_installer.wagtail_version
+    wagtail_installer = WagtailVersionInstaller()
+    wagtail_version = wagtail_installer.wagtail_version
 
     click.echo(
         click.style(
@@ -42,20 +39,27 @@ def new(project_name: str, package_name: str) -> None:
         default=wagtail_version,
     )
 
-    if version_installer.complete_minimal_wagtail_version(version) not in base_versions:
+    wagtail_installer.change_version(version)
+
+    result = wagtail_installer.install_wagtail()
+
+    if not result:
         click.echo(
             click.style(
                 f"Error: Could not find wagtail v{version}",
-                fg="red",
+                fg="white",
+                bg="red",
             )
         )
-        exit()
-
-    version_installer.change_version(
-        version_installer.complete_minimal_wagtail_version(version)
-    )
-
-    version_installer.install_wagtail()
+        return
+    elif result is None:
+        click.echo(
+            click.style(
+                f"Error: Could not install wagtail v{version} {result['error']}",
+                fg="white",
+                bg="red",
+            )
+        )
 
     path_manager = PathManager(project_name=project_name, package_name=package_name)
 
@@ -101,6 +105,7 @@ def versions(major) -> None:
 
     pypi_client = PyPiClient()
     base_versions = pypi_client.base_versions
+    print(base_versions)
 
     grouped_data = {}
     for item in base_versions:
@@ -113,6 +118,7 @@ def versions(major) -> None:
             grouped_data[first_digit] = [item]
 
     result = list(grouped_data.values())
+    print(result)
 
     # Sort the groups by the first digit
     result.sort(key=lambda x: int(x[0].split(".")[0]))

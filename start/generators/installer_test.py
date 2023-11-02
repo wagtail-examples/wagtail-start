@@ -33,3 +33,22 @@ def test_installer_value_two_numbers():
 def test_installer_value_single_number():
     installer = WagtailVersionInstaller("2")
     assert installer.wagtail_version == "2.0.0"
+
+
+def test_change_version():
+    installer = WagtailVersionInstaller("2.9")
+    installer.change_version("2.9.1")
+    assert installer.wagtail_version == "2.9.1"
+
+
+# @responses.activate
+# def test_install_wagtail_response_not_200():
+#     responses.add(
+#         responses.GET,
+#         "https://pypi.org/pypi/wagtail/2.9.1/json",
+#         json={"info": {"version": "2.9.1"}},
+#         status=404,
+#     )
+#     installer = WagtailVersionInstaller()
+#     with pytest.raises(ValueError) as e:
+#         installer.install_wagtail()

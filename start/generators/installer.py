@@ -28,71 +28,34 @@ class WagtailVersionInstaller:
             response = requests.get(url)
             data = response.json()
             self.wagtail_version = str(data["info"]["version"])
-        else:
-            self.wagtail_version = self.complete_minimal_wagtail_version(
-                wagtail_version
-            )
-
-    def complete_minimal_wagtail_version(self, version):
-        parts = version.split(".")
-
-        if len(parts) == 3:
-            return version
-
-        if len(parts) == 2:
-            return f"{version}.0"
-
-        if len(parts) == 1:
-            return f"{version}.0.0"
-
-        raise ValueError(
-            (
-                "The version of wagtail is not valid.",
-                "Please use a major and minor version e.g. 2.9 or 2.9.1 if you need a patch version.",
-            )
-        )
 
     def change_version(self, version):
-        self.wagtail_version = self.complete_minimal_wagtail_version(version)
+        self.wagtail_version = version
 
     def install_wagtail(self):
         url = f"https://pypi.org/pypi/wagtail/{self.wagtail_version}/json"
         response = requests.get(url)
 
         if response.status_code != 200:
-            click.echo(
-                click.style(
-                    f"Error: Could not find wagtail v{self.wagtail_version}",
-                    fg="white",
-                    bg="red",
-                )
+            return False
+
+        click.echo(
+            click.style(
+                "Installing wagtail",
+                fg="black",
+                bg="green",
             )
-            exit()
-        else:
-            click.echo(
-                click.style(
-                    "Installing wagtail",
-                    fg="black",
-                    bg="green",
-                )
-            )
-        cmd = f"""source $(poetry env info --path)/bin/activate &&
-        pip install wagtail=={self.wagtail_version} && deactivate"""
+        )
 
         try:
             subprocess.run(
-                cmd,
+                f"""source $(poetry env info --path)/bin/activate &&
+                pip install wagtail=={self.wagtail_version} && deactivate""",
                 shell=True,
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
+            return True
         except subprocess.CalledProcessError as e:
-            click.echo(
-                click.style(
-                    f"Error: Could not install wagtail v{self.wagtail_version} {e}",
-                    fg="white",
-                    bg="red",
-                )
-            )
-            exit()
+            return {"error": e.stderr.decode("utf-8")}
