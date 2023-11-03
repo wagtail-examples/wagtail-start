@@ -22,12 +22,11 @@ class WagtailVersionInstaller:
     major and minor version if the patch version is not specified.
     """
 
-    def __init__(self, wagtail_version=None):
-        if not wagtail_version:
-            url = "https://pypi.org/pypi/wagtail/json"
-            response = requests.get(url)
-            data = response.json()
-            self.wagtail_version = str(data["info"]["version"])
+    def __init__(self):
+        url = "https://pypi.org/pypi/wagtail/json"
+        response = requests.get(url)
+        data = response.json()
+        self.wagtail_version = str(data["info"]["version"])
 
     def change_version(self, version):
         self.wagtail_version = version
@@ -57,5 +56,5 @@ class WagtailVersionInstaller:
                 stderr=subprocess.DEVNULL,
             )
             return True
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError as e:  # pragma: no cover
             return {"error": e.stderr.decode("utf-8")}

@@ -14,41 +14,43 @@ def test_installer_latest_version():
     assert installer.wagtail_version == "3.0.3"
 
 
-def test_installer_value_four_numbers():
-    with pytest.raises(ValueError) as e:
-        WagtailVersionInstaller("2.9.1.1")
-    assert "The version of wagtail is not valid" in str(e.value)
-
-
-def test_installer_value_three_numbers():
-    wvi = WagtailVersionInstaller("2.9.1")
-    assert wvi.wagtail_version == "2.9.1"
-
-
-def test_installer_value_two_numbers():
-    wvi = WagtailVersionInstaller("2.9")
-    assert wvi.wagtail_version == "2.9.0"
-
-
-def test_installer_value_single_number():
-    installer = WagtailVersionInstaller("2")
-    assert installer.wagtail_version == "2.0.0"
-
-
 def test_change_version():
-    installer = WagtailVersionInstaller("2.9")
+    installer = WagtailVersionInstaller()
     installer.change_version("2.9.1")
     assert installer.wagtail_version == "2.9.1"
 
 
-# @responses.activate
-# def test_install_wagtail_response_not_200():
-#     responses.add(
-#         responses.GET,
-#         "https://pypi.org/pypi/wagtail/2.9.1/json",
-#         json={"info": {"version": "2.9.1"}},
-#         status=404,
-#     )
-#     installer = WagtailVersionInstaller()
-#     with pytest.raises(ValueError) as e:
-#         installer.install_wagtail()
+@pytest.fixture
+def installer_incorrect_version():
+    installer = WagtailVersionInstaller()
+    installer.change_version("2.9.100")
+    return installer
+
+
+@responses.activate
+def test_install_wagtail_response_not_200(installer_incorrect_version):
+    responses.add(
+        responses.GET,
+        "https://pypi.org/pypi/wagtail/2.9.100/json",
+        status=404,
+    )
+    result = installer_incorrect_version.install_wagtail()
+    assert result is False
+
+
+@pytest.fixture
+def installer():
+    installer = WagtailVersionInstaller()
+    return installer
+
+
+@responses.activate
+def test_install_wagtail_success(installer):
+    v = installer.wagtail_version
+    responses.add(
+        responses.GET,
+        f"https://pypi.org/pypi/wagtail/{v}/json",
+        json={"info": {"version": "{v}"}},
+    )
+    result = installer.install_wagtail()
+    assert result is True

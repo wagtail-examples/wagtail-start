@@ -1,8 +1,10 @@
+import shutil
 from pathlib import Path
 
 import pytest
+import responses
 
-from start.processors.cls import PathManager
+from start.managers import PathManager, PyPiClient
 
 
 @pytest.fixture
@@ -68,3 +70,30 @@ def test_path_manager_path_exists(tmp_path):
     assert pm.path_exists(p_name) is True
     p_name.rmdir()
     assert pm.path_exists(p_name) is False
+
+
+def test_path_manager_create_project_path():
+    pm = PathManager("My Project", "My Package")
+    assert pm.project_path.exists() is False
+    pm.create_project_path()
+    assert pm.project_path.exists() is True
+
+    # clean up after test
+    shutil.rmtree(pm.project_path)
+    assert pm.project_path.exists() is False
+
+
+def test_pypi_client():
+    pypi = PyPiClient()
+    assert isinstance(pypi, PyPiClient)
+
+
+@responses.activate
+def test_pypi_client_reduce_versions():
+    responses.add(
+        responses.GET,
+        "https://pypi.org/pypi/wagtail/json",
+        json={"releases": {"2.9": {}, "2.9.1": {}, "2.9.2": {}}},
+    )
+    pypi = PyPiClient()
+    assert pypi.base_versions == ["2.9", "2.9.1", "2.9.2"]

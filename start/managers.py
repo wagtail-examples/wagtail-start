@@ -46,7 +46,6 @@ class PathManager:
         return path.exists() and path.is_dir()
 
     def create_project_path(self):
-        # self.project_path.mkdir(parents=True, exist_ok=False)
         self.package_path.mkdir(parents=True, exist_ok=False)
 
 
@@ -82,11 +81,3 @@ class PyPiClient:
                 reduced_versions.append(version)
 
         return reduced_versions
-
-    def _append_2_digit_versions(self, versions: list) -> list:
-        # e.g. 2.9 -> 2.9.0
-        for version in versions:
-            if len(version.split(".")) == 2:
-                versions[versions.index(version)] = f"{version}.0"
-
-        return versions

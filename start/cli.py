@@ -5,7 +5,7 @@ import click
 from .generators.backend import generate_backend
 from .generators.frontend import generate_frontend
 from .generators.installer import WagtailVersionInstaller
-from .processors.cls import PathManager, PyPiClient
+from .managers import PathManager, PyPiClient
 
 sources = {
     "gitignore": "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
