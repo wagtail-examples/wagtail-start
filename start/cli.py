@@ -114,7 +114,7 @@ def versions(major) -> None:
 
     pypi_client = PyPiClient()
     base_versions = pypi_client.base_versions
-    print(base_versions)
+    # print(base_versions)
 
     grouped_data = {}
     for item in base_versions:
@@ -127,7 +127,7 @@ def versions(major) -> None:
             grouped_data[first_digit] = [item]
 
     result = list(grouped_data.values())
-    print(result)
+    # print(result)
 
     # Sort the groups by the first digit
     result.sort(key=lambda x: int(x[0].split(".")[0]))
