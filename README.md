@@ -27,8 +27,10 @@ The project will be created in the [project_name] inside the parent directory of
 
 ## Extra Options
 
+- Add a .gitignore file
 - Remove the default welcome page
 - Add webpack to the project
+- Add pre-commit
 
 ## New site development
 
