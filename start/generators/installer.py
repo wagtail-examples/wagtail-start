@@ -40,9 +40,8 @@ class WagtailVersionInstaller:
 
         click.echo(
             click.style(
-                "Installing wagtail",
-                fg="black",
-                bg="green",
+                "Setting up the generators...",
+                fg="yellow",
             )
         )
 

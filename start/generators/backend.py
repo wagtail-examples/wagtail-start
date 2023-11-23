@@ -3,7 +3,7 @@ import subprocess
 import click
 
 
-def generate_backend(path_manager):
+def generate_backend(path_manager, webpack):
     """Generate the site
     by creating the wagtail site and moving files around
 
@@ -37,7 +37,7 @@ def generate_backend(path_manager):
         remove_welcome_page(path_manager)
         replace_home_page(path_manager)
 
-    generate_readme(path_manager)
+    generate_readme(path_manager, webpack)
 
 
 def remove_welcome_page(path_manager):
@@ -193,8 +193,8 @@ def update_base_settings(path_manager):
         f.write(content)
 
 
-def generate_readme(path_manager) -> str:
-    content = f"""# { path_manager.package_name }
+def generate_readme(path_manager, webpack):
+    content = f"""# Documentation for { path_manager.package_name }
 
 This project was generated using [Wagtail Start CLI](https://github.com/wagtail-examples/wagtail-start)
 
@@ -211,8 +211,9 @@ python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
 ```
-
-### Frontend
+"""
+    if webpack == "y":
+        content += """\n### Frontend
 
 The frontend is built using webpack and you'll find a .nvmrc file in the root of the project.
 If you have nvm installed, you can run `nvm use` to switch to the correct node version.
@@ -227,3 +228,51 @@ npm start
 
     with open(path_manager.project_path / "README.md", "w") as f:
         f.write(content)
+
+
+def generate_pre_commit_config(path_manager):
+    config = """repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8"""
+
+    with open(path_manager.project_path / ".pre-commit-config.yaml", "w") as f:
+        f.write(config)
+
+    isort_config = """[settings]\nprofile = black"""
+
+    with open(path_manager.project_path / ".isort.cfg", "w") as f:
+        f.write(isort_config)
+
+    flake8_config = """[flake8]\nmax-line-length = 120"""
+
+    with open(path_manager.project_path / ".flake8", "w") as f:
+        f.write(flake8_config)
+
+    # black has no config file
+
+
+def generate_python_git_ignore(path_manager, ignore_append):
+    python_git_ignore_content = subprocess.run(
+        [
+            "curl",
+            "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
+        ],
+        capture_output=True,
+    ).stdout.decode("utf-8")
+
+    if ignore_append:
+        with open(path_manager.project_path / ".gitignore", "a") as f:
+            f.write(python_git_ignore_content)
+    else:
+        with open(path_manager.project_path / ".gitignore", "w") as f:
+            f.write(python_git_ignore_content)
