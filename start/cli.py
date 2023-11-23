@@ -1,8 +1,10 @@
-import subprocess
-
 import click
 
-from .generators.backend import generate_backend
+from .generators.backend import (
+    generate_backend,
+    generate_pre_commit_config,
+    generate_python_git_ignore,
+)
 from .generators.frontend import generate_frontend
 from .generators.installer import WagtailVersionInstaller
 from .managers import PathManager, PyPiClient
@@ -66,6 +68,15 @@ def new(project_name: str, package_name: str) -> None:
             )
         )
 
+    ignore_append = False
+    python_git_ignore = click.prompt(
+        "Do you want to use a python gitignore? (y/n)", type=str, default="y"
+    )
+    pre_commit = click.prompt(
+        "Do you want to use pre-commit? (y/n)", type=str, default="y"
+    )
+    webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
+
     pm = PathManager(project_name=project_name, package_name=package_name)
 
     if pm.path_exists(pm.project_path):
@@ -74,32 +85,18 @@ def new(project_name: str, package_name: str) -> None:
 
     pm.create_project_path()
 
-    click.echo("Creating new wagtail site")
-    click.echo("==========================")
+    generate_backend(pm, webpack)
 
-    generate_backend(pm)
-
-    ignore_append = False
-    python_git_ignore = click.prompt(
-        "Do you want to use a python gitignore? (y/n)", type=str, default="y"
-    )
+    click.echo(f"Creating your new Wagtail CMS site at {pm.project_path}")
 
     if python_git_ignore == "y":
-        ignore_append = True
-        python_git_ignore_content = subprocess.run(
-            [
-                "curl",
-                "https://raw.githubusercontent.com/github/gitignore/main/Python.gitignore",
-            ],
-            capture_output=True,
-        ).stdout.decode("utf-8")
-        with open(pm.project_path / ".gitignore", "a") as f:
-            f.write(python_git_ignore_content)
-
-    webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
+        generate_python_git_ignore(pm, ignore_append=ignore_append)
 
     if webpack == "y":
         generate_frontend(pm, ignore_append)
+
+    if pre_commit == "y":
+        generate_pre_commit_config(pm)
 
 
 @click.command()
