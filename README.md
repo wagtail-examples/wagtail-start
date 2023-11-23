@@ -16,7 +16,7 @@ poetry run new [project_name] [package_name] [-v|--version]
 
 Arguments:
 
-- project_name: The name of the project default is `mysite`
+- project_name: The name of the project default is `wagtail_site`
 - package_name: The name of the package default is `app`
 
 Options:
