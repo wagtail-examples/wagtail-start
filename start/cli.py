@@ -70,12 +70,10 @@ def new(project_name: str, package_name: str) -> None:
 
     ignore_append = False
     python_git_ignore = click.prompt(
-        "Do you want to use a python gitignore? (y/n)", type=str, default="y"
+        "Add a python gitignore? (y/n)", type=str, default="y"
     )
-    pre_commit = click.prompt(
-        "Do you want to use pre-commit? (y/n)", type=str, default="y"
-    )
-    webpack = click.prompt("Do you want to use webpack? (y/n)", type=str, default="y")
+    pre_commit = click.prompt("Include pre-commit? (y/n)", type=str, default="y")
+    webpack = click.prompt("Setup webpack? (y/n)", type=str, default="y")
 
     pm = PathManager(project_name=project_name, package_name=package_name)
 
@@ -87,7 +85,7 @@ def new(project_name: str, package_name: str) -> None:
 
     generate_backend(pm, webpack)
 
-    click.echo(f"Creating your new Wagtail CMS site at {pm.project_path}")
+    click.echo(f"Generating your new Wagtail CMS site at {pm.project_path}")
 
     if python_git_ignore == "y":
         generate_python_git_ignore(pm, ignore_append=ignore_append)
@@ -97,6 +95,20 @@ def new(project_name: str, package_name: str) -> None:
 
     if pre_commit == "y":
         generate_pre_commit_config(pm)
+
+    click.echo(
+        click.style(
+            "Your new Wagtail CMS site has been generated",
+            fg="green",
+        )
+    )
+
+    click.echo(
+        click.style(
+            "Next steps: open the project in your IDE and run the setup instructions in the README.md file",
+            fg="yellow",
+        )
+    )
 
 
 @click.command()

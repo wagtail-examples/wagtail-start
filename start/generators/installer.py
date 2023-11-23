@@ -40,7 +40,7 @@ class WagtailVersionInstaller:
 
         click.echo(
             click.style(
-                "Setting up the generator...",
+                "Setting up the generators...",
                 fg="yellow",
             )
         )

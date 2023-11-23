@@ -62,7 +62,12 @@ def generate_frontend(path_manager, ignore_append):
         ["mkdir", "-p", "client/styles"], cwd=path_manager.project_path, check=True
     )
     with open(path_manager.project_path / "client/styles/index.scss", "w") as f:
-        f.write("""body { background-color: #fff; color: #000; }""")
+        f.write(
+            """body {
+    background-color: #fff;
+    color: #000;
+}"""
+        )
     with open(path_manager.project_path / "client/scripts/index.js", "w") as f:
         f.write("""import "../styles/index.scss";\nconsole.log("hello world");""")
 
@@ -115,8 +120,7 @@ def generate_frontend(path_manager, ignore_append):
     subprocess.run(
         ["npm", "init", "-y"],
         cwd=path_manager.project_path,
-        check=True,
-        stdout=subprocess.DEVNULL,
+        capture_output=True,
     )
 
     with open(path_manager.project_path / ".nvmrc", "w") as f:
@@ -137,8 +141,7 @@ def generate_frontend(path_manager, ignore_append):
     subprocess.run(
         ["npm", "install", "--package-lock-only", *dev_packages, "--save-dev"],
         cwd=path_manager.project_path,
-        check=True,
-        # stdout=subprocess.DEVNULL,
+        capture_output=True,
     )
     with open(path_manager.project_path / "package.json", "r") as f:
         content = f.read()
