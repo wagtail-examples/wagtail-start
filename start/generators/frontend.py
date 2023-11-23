@@ -70,10 +70,12 @@ def generate_frontend(path_manager, ignore_append):
     with open(path_manager.package_path / "templates" / "base.html", "r") as f:
         content = f.read()
         content = content.replace(
-            "'css/webapp.css'", f"'{path_manager.package_name}/bundle.css'"
+            f"'css/{path_manager.package_name}.css'",
+            f"'{path_manager.package_name}/bundle.css'",
         )
         content = content.replace(
-            "'js/webapp.js'", f"'{path_manager.package_name}/bundle.js'"
+            f"'js/{path_manager.package_name}.js'",
+            f"'{path_manager.package_name}/bundle.js'",
         )
     with open(path_manager.package_path / "templates" / "base.html", "w") as f:
         f.write(content)
@@ -84,6 +86,16 @@ def generate_frontend(path_manager, ignore_append):
     )
     subprocess.run(["rm", "-rf", str(path_manager.package_path / "static" / "css")])
     subprocess.run(["rm", "-rf", str(path_manager.package_path / "static" / "js")])
+
+    # ADD CSRF_TRUSTED_ORIGINS
+    with open(path_manager.package_path / "settings" / "dev.py", "r") as f:
+        content = f.read()
+        content = content.replace(
+            'ALLOWED_HOSTS = ["*"]',
+            'ALLOWED_HOSTS = ["*"]\n\nCSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]',
+        )
+    with open(path_manager.package_path / "settings" / "dev.py", "w") as f:
+        f.write(content)
 
     # GIT IGNORE
     append_line = "\n# node\nnode_modules\n"
