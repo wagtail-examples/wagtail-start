@@ -2,6 +2,12 @@
 
 A CLI tool to quickly start a new Wagtail project.
 
+## Requirements
+
+- Python 3.8+
+- [Poetry](https://python-poetry.org)
+- [Node.js](https://nodejs.org)
+
 ## Installation
 
 ```bash
