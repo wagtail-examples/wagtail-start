@@ -269,6 +269,8 @@ def generate_python_git_ignore(path_manager, ignore_append):
         ],
         capture_output=True,
     ).stdout.decode("utf-8")
+    python_git_ignore_content += "\n/media\n"
+    python_git_ignore_content += "\n/static\n"
 
     if ignore_append:
         with open(path_manager.project_path / ".gitignore", "a") as f:
