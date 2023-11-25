@@ -47,8 +47,7 @@ class WagtailVersionInstaller:
 
         try:
             subprocess.run(
-                f"""source $(poetry env info --path)/bin/activate &&
-                pip install wagtail=={self.wagtail_version} && deactivate""",
+                f"""$(poetry env info --path)/bin/pip install wagtail=={self.wagtail_version}""",
                 shell=True,
                 check=True,
                 stdout=subprocess.DEVNULL,
@@ -56,4 +55,4 @@ class WagtailVersionInstaller:
             )
             return True
         except subprocess.CalledProcessError as e:  # pragma: no cover
-            return {"error": e.stderr.decode("utf-8")}
+            return {"error": e}
