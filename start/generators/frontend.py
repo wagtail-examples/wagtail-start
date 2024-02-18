@@ -1,47 +1,5 @@
 import subprocess
 
-webpack_content = """const path = require("path");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const BrowserSyncPlugin = require("browser-sync-webpack-plugin");
-
-module.exports = {
-  mode: "production", // or "development"
-  entry: path.resolve(__dirname, "./client/scripts/index.js"),
-  output: {
-    path: path.resolve(__dirname, "./webapp/static/webapp"),
-    filename: "bundle.js",
-  },
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env"],
-          },
-        },
-      },
-      {
-        test: /\.scss$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
-      },
-    ],
-  },
-  plugins: [
-    new MiniCssExtractPlugin({
-      filename: "bundle.css",
-    }),
-    new BrowserSyncPlugin({
-      host: "localhost",
-      port: 3000,
-      proxy: "http://127.0.0.1:8000/", // the port your django app will be running on in development
-      files: ["./**/*.html"],
-    }),
-  ],
-};"""
-
 
 def generate_frontend(path_manager, ignore_append):
     """Generate webpack setup
@@ -61,13 +19,13 @@ def generate_frontend(path_manager, ignore_append):
     subprocess.run(
         ["mkdir", "-p", "client/styles"], cwd=path_manager.project_path, check=True
     )
+    with open(
+        path_manager.get_cwd() / "start" / "generators" / "files" / "index.scss", "r"
+    ) as f:
+        scss_content = f.read()
+
     with open(path_manager.project_path / "client/styles/index.scss", "w") as f:
-        f.write(
-            """body {
-    background-color: #fff;
-    color: #000;
-}"""
-        )
+        f.write(scss_content)
     with open(path_manager.project_path / "client/scripts/index.js", "w") as f:
         f.write("""import "../styles/index.scss";\nconsole.log("hello world");""")
 
@@ -153,5 +111,10 @@ def generate_frontend(path_manager, ignore_append):
         f.write(content)
 
     # WEBPACK CONFIG
+    with open(
+        path_manager.get_cwd() / "start" / "generators" / "files" / "webpack.config.js",
+        "r",
+    ) as f:
+        webpack_content = f.read()
     with open(path_manager.project_path / "webpack.config.js", "w") as f:
         f.write(webpack_content.replace("webapp", path_manager.package_name))
