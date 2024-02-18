@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block body_class %}template-homepage{% endblock %}
+
+{% block content %}
+
+<div class="wrapper">
+    <div class="mv">
+        <h1>{{ page.title }}</h1>
+        <p>home_page.html static test content</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Culpa labore ipsa totam, nesciunt nobis velit.
+            Tempora, suscipit? Voluptatem aliquid excepturi dolor minus maiores, explicabo culpa vero corporis
+            consectetur, quisquam harum.</p>
+        <h2>Heading 2</h2>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla tempore ducimus, aperiam saepe placeat soluta
+            veniam hic inventore facere assumenda dolorum atque, neque voluptatem maiores reprehenderit excepturi
+            possimus consequuntur rem!</p>
+        <h3>Heading 3</h3>
+        <p>Lorem ipsum dolor sit amet.</p>
+        <h4>Heading 4</h4>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Nemo quasi odit, nam quis modi et fugiat possimus
+            laborum tempore alias?</p>
+        <ul>
+            <li>Item 1</li>
+            <li>Item 2</li>
+            <li>Item 3</li>
+        </ul>
+        <ol>
+            <li>Item 1</li>
+            <li>Item 2</li>
+            <li>Item 3</li>
+        </ol>
+
+    </div>
+    <div class="mv">
+        <a href="#">Link</a>
+    </div>
+    <div class="mv">
+        <img src="https://placehold.co/600x400" alt="place holder image">
+    </div>
+    <div class="mv">
+        <table>
+            <thead>
+                <tr>
+                    <th>Header 1</th>
+                    <th>Header 2</th>
+                    <th>Header 3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Row 1, Cell 1</td>
+                    <td>Row 1, Cell 2</td>
+                    <td>Row 1, Cell 3</td>
+                </tr>
+                <tr>
+                    <td>Row 2, Cell 1</td>
+                    <td>Row 2, Cell 2</td>
+                    <td>Row 2, Cell 3</td>
+                </tr>
+                <tr>
+                    <td>Row 3, Cell 1</td>
+                    <td>Row 3, Cell 2</td>
+                    <td>Row 3, Cell 3</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td>Footer 1</td>
+                    <td>Footer 2</td>
+                    <td>Footer 3</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="mv">
+        <div class="success">
+            <p>Success</p>
+        </div>
+        <div class="danger">
+            <p>Danger</p>
+        </div>
+        <div class="warning">
+            <p>Warning</p>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

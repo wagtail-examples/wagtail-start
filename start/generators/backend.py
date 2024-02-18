@@ -56,16 +56,10 @@ def remove_welcome_page(path_manager):
 
 
 def replace_home_page(path_manager):
-    home_page = """
-    {% extends "base.html" %}
-
-    {% block body_class %}template-homepage{% endblock %}
-
-    {% block content %}
-
-    <h1>{{ page.title }}</h1>
-
-    {% endblock content %}"""
+    with open(
+        path_manager.get_cwd() / "start" / "generators" / "files" / "home_page.html",
+    ) as f:
+        home_page = f.read()
 
     with open(
         path_manager.package_path / "home" / "templates" / "home" / "home_page.html",
@@ -194,40 +188,19 @@ def update_base_settings(path_manager):
 
 
 def generate_readme(path_manager, webpack):
-    content = f"""# Documentation for { path_manager.package_name }
-
-This project was generated using [Wagtail Start CLI](https://github.com/wagtail-examples/wagtail-start)
-
-## Development
-
-### Wagtail
-
-Create a virtual environment and install the dependencies from requirements.txt
-
-In a console, at the root of the project run:
-
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-```
-"""
+    with open(
+        path_manager.get_cwd() / "start" / "generators" / "files" / "README.md", "r"
+    ) as f:
+        readme_content = f.read()
+        readme_content.replace("{{app}}", path_manager.package_name)
     if webpack == "y":
-        content += """\n### Frontend
-
-The frontend is built using webpack and you'll find a .nvmrc file in the root of the project.
-If you have nvm installed, you can run `nvm use` to switch to the correct node version.
-
-In a second console run:
-
-```bash
-npm install
-npm start
-```
-"""
+        with open(
+            path_manager.get_cwd() / "start" / "generators" / "files" / "README_fe.md",
+        ) as f:
+            readme_content += f.read()
 
     with open(path_manager.project_path / "README.md", "w") as f:
-        f.write(content)
+        f.write(readme_content)
 
 
 def generate_pre_commit_config(path_manager):

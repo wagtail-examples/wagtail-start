@@ -1,0 +1,128 @@
+$primary: #0059ff;
+$secondary: #f7f7f7;
+$danger: #700000;
+$success: #006e00;
+$warning: #ffb300;
+$dark: #000;
+$light: #fff;
+
+$small: 576px;
+$medium: 768px;
+$large: 1024px;
+$xlarge: 1200px;
+
+// global
+*::after,
+*::before,
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  font-family: "Montserrat", sans-serif;
+  line-height: 1.4;
+}
+
+body {
+  background-color: $light;
+  color: $dark;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+
+  @media screen and (min-width: $medium) {
+    font-size: 1.05rem;
+  }
+
+  @media screen and (min-width: $large) {
+    font-size: 1.1rem;
+  }
+
+  @media screen and (min-width: $xlarge) {
+    font-size: 1.2rem;
+  }
+}
+
+.wrapper {
+  max-width: $small;
+  margin: 0 auto;
+  padding: 0 2rem;
+
+  @media screen and (min-width: $medium) {
+    max-width: $medium;
+  }
+
+  @media screen and (min-width: $large) {
+    max-width: $large;
+  }
+
+  @media screen and (min-width: $xlarge) {
+    max-width: $xlarge;
+  }
+}
+
+// elements
+a {
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+img {
+  max-width: 100%;
+  margin: auto;
+  height: auto;
+  display: block;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+
+  thead {
+    background-color: $secondary;
+  }
+
+  th,
+  td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid $secondary;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: lighten($dark, 30%);
+}
+
+// styles
+.mv {
+  margin: 2rem 0;
+
+  @media screen and (min-width: $medium) {
+    background-color: $secondary;
+    padding: 0 0.25rem;
+  }
+}
+
+.success {
+  color: $success;
+}
+
+.danger {
+  color: $danger;
+}
+
+.warning {
+  color: $warning;
+}
