@@ -73,7 +73,7 @@ def new(project_name: str, package_name: str) -> None:
         "Add a python gitignore? (y/n)", type=str, default="y"
     )
     pre_commit = click.prompt("Include pre-commit? (y/n)", type=str, default="y")
-    webpack = click.prompt("Setup webpack? (y/n)", type=str, default="y")
+    rollup = click.prompt("Setup rollup? (y/n)", type=str, default="y")
 
     pm = PathManager(project_name=project_name, package_name=package_name)
 
@@ -83,14 +83,14 @@ def new(project_name: str, package_name: str) -> None:
 
     pm.create_project_path()
 
-    generate_backend(pm, webpack)
+    generate_backend(pm, rollup)
 
     click.echo(f"Generating your new Wagtail CMS site at {pm.project_path}")
 
     if python_git_ignore == "y":
         generate_python_git_ignore(pm, ignore_append=ignore_append)
 
-    if webpack == "y":
+    if rollup == "y":
         generate_frontend(pm, ignore_append)
 
     if pre_commit == "y":
