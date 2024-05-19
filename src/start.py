@@ -8,5 +8,8 @@ def generate(release: str) -> None:
 
     CMD: generate --release <release>
     """
-    click.echo(click.style(f"Generating a new wagtail site with release {release}", fg="yellow"))
-    
+    click.echo(
+        click.style(
+            f"Generating a new wagtail site with release {release}", fg="yellow"
+        )
+    )

@@ -1,6 +1,6 @@
-import httpx
 from dataclasses import dataclass
-from typing import Optional
+
+import httpx
 
 
 @dataclass
@@ -33,7 +33,7 @@ class PyPiParser:
                 reduced_versions.append(version)
 
         return reduced_versions
-    
+
     def parse_release_groups(self):
         grouped_releases = {}
         for item in self.base_versions:
@@ -44,14 +44,16 @@ class PyPiParser:
                 grouped_releases[first_digit] = [item]
 
         # sort grouped_releases by first digit desc
-        grouped_releases = dict(sorted(grouped_releases.items(), key=lambda x: int(x[0]), reverse=True))
+        grouped_releases = dict(
+            sorted(grouped_releases.items(), key=lambda x: int(x[0]), reverse=True)
+        )
         return grouped_releases
-    
+
     def parse_latest_release(self):
         major = list(self.release_groups.keys())[0]
         releases = self.release_groups[major]
         return releases[-1]
-    
+
     def get_release_group(self, major):
         return self.release_groups[major]
 
@@ -61,4 +63,3 @@ if __name__ == "__main__":
     # print(pypi.base_versions)
     # print(pypi.release_groups)
     print(pypi.get_release_group("2"))
-    
