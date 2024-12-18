@@ -7,5 +7,5 @@ In a second console run:
 
 ```bash
 npm install
-npm server
+npm run server
 ```
